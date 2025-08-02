@@ -22,7 +22,7 @@ export const NewYachtsData: NewYachtsFormSection[] = [
   {
     section: "General",
     fields: [
-      { label: "Type", placeholder: "select type", type: "dropdown",  options: ["crewed", "bareboat"]},
+      { label: "Yacht Type", placeholder: "select type", type: "dropdown",  options: ["crewed", "bareboat"]},
       {
         label: "Boat Type",
         placeholder: "e.g,. Power",

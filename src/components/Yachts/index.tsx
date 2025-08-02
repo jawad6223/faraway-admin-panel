@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import BreadCrum from "./BreadCrum";
 import { useSelector, useDispatch } from "react-redux";
-import { getYachts, deleteYachts } from "@/lib/Features/Yachts/yachtsSlice";
+import { getYachts, deleteYachts, publishYacht } from "@/lib/Features/Yachts/yachtsSlice";
 import type { RootState, AppDispatch } from '@/lib/Store/store';
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { MdOutlineBathroom, MdClose } from "react-icons/md";
@@ -20,10 +20,14 @@ const YachtsDetail = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const dispatch = useDispatch<AppDispatch>();
   const { allYachts, getLoading, totalPages, total } = useSelector((state: RootState) => state.yachts);
+  console.log(allYachts, "testing>>>>>")
   const [currentPages, setCurrentPages] = useState(1);
   const itemsPerPage = 10;
   const [yachtsToDelete, setYachtsToDelete] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [publishingYachtId, setPublishingYachtId] = useState<string | null>(null);
+  const [yachtToPublish, setYachtToPublish] = useState<string | null>(null);
+  const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -73,12 +77,19 @@ const YachtsDetail = () => {
     setIsModalOpen(true);
   };
 
+  const handlePublishClick = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    if (publishingYachtId === id) return;
+    setYachtToPublish(id);
+    setIsPublishModalOpen(true);
+  };
+
   const handleConfirm = () => {
     if (yachtsToDelete) {
       dispatch(deleteYachts(yachtsToDelete))
         .unwrap()
         .then(() => {
-          toast.success("Yachts deleted successfully");
+          toast.success("Yacht deleted successfully");
           setIsModalOpen(false);
           dispatch(getYachts({ page: currentPages, limit: itemsPerPage }));
         })
@@ -89,8 +100,35 @@ const YachtsDetail = () => {
     setIsModalOpen(false);
   };
 
+  const handlePublishConfirm = async () => {
+    if (yachtToPublish) {
+      setPublishingYachtId(yachtToPublish);
+      try {
+        const resultAction = await dispatch(publishYacht({ yachtId: yachtToPublish, status: "published" }));
+        if (publishYacht.fulfilled.match(resultAction)) {
+          toast.success("Yacht published successfully");
+        } else if (publishYacht.rejected.match(resultAction)) {
+          const errorPayload = resultAction.payload as {
+            error: { message: string };
+          };
+          toast.error(errorPayload?.error?.message || "Failed to publish yacht.");
+        }
+      } catch (error) {
+        console.error(error);
+        toast.error("An unexpected error occurred");
+      } finally {
+        setPublishingYachtId(null);
+      }
+    }
+    setIsPublishModalOpen(false);
+  };
+
   const handleCancel = () => {
     setIsModalOpen(false);
+  };
+
+  const handlePublishCancel = () => {
+    setIsPublishModalOpen(false);
   };
 
   return (
@@ -138,7 +176,7 @@ const YachtsDetail = () => {
                 },
               ];
               return (
-                <div key={yachtIndex} className="bg-white cursor-pointer border border-[#CECECE] rounded-lg shadow-md px-[8px] py-[8px] flex gap-4 items-center overflow-hidden" onClick={() => router.push(`/yachts/${yachtItem._id}`)}>
+                <div key={yachtIndex} className="bg-white border border-[#CECECE] rounded-lg shadow-md px-[8px] py-[8px] flex gap-4 items-center overflow-hidden">
                   <div className="hidden md:block relative w-[37%] overflow-hidden">
                     <Image
                       src={yachtItem?.primaryImage}
@@ -183,15 +221,13 @@ const YachtsDetail = () => {
                             alt={`Yacht image ${index + 1}`}
                             width={54}
                             height={44}
-                            className="rounded-md cursor-pointer w-[54px] h-[44px]"
+                            className="rounded-md w-[54px] h-[44px]"
                           />
                         </div>
                       ))}
                       {yachtItem.galleryImages.length > 6 && (
                         <div
-                          className="relative cursor-pointer"
-                          onClick={() => console.log("See All clicked")}
-                        >
+                          className="relative">
                           <Image
                             src={yachtItem.galleryImages[6]}
                             alt="Yacht image see all"
@@ -218,6 +254,24 @@ const YachtsDetail = () => {
                         €{yachtItem.daytripPriceEuro}
                       </p>
                       <div className="flex items-center gap-2 mt-1">
+                        <button
+                          onClick={(e) => handlePublishClick(e, yachtItem._id)}
+                          disabled={publishingYachtId === yachtItem._id}
+                          className={`px-[16px] py-[7px] rounded-full text-center font-medium 
+                            ${publishingYachtId === yachtItem._id
+                              ? "bg-[#dc3545] text-white cursor-not-allowed"
+                              : yachtItem.status === "published"
+                                ? "bg-[#dc3545] hover:bg-[#c82333] text-white cursor-not-allowed"
+                                : "bg-[#012A50] hover:bg-[#5F5C63] text-white cursor-pointer"
+                            }`}
+                        >
+                          {publishingYachtId === yachtItem._id
+                            ? "Publishing..."
+                            : yachtItem.status === "published"
+                              ? "publish"
+                              : "Publish"}
+                        </button>
+
                         <button
                           className="px-[24px] py-[8px] cursor-pointer font-plusjakarta font-extrabold text-[13px] bg-[#001B48] hover:bg-[#5F5C63] text-white rounded-full"
                           onClick={() => router.push(`/yachts/${yachtItem._id}`)}
@@ -283,6 +337,32 @@ const YachtsDetail = () => {
                 </button>
                 <button
                   onClick={handleCancel}
+                  className="px-[16px] py-[7px] border border-[#2185D0] text-[#989898] hover:text-[#2185D0] rounded-full transition cursor-pointer flex items-center justify-center gap-1"
+                >
+                  <MdClose />
+                  No
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {isPublishModalOpen && !publishingYachtId && (
+          <div className="fixed inset-0 z-20 flex items-center justify-center bg-[#BABBBB]/40 bg-opacity-50">
+            <div className="bg-white rounded-xl p-6 w-80">
+              <h2 className="text-lg font-semibold text-center">
+                Are you sure you want to publish this yacht?
+              </h2>
+              <div className="flex justify-center items-center gap-3 mt-3">
+                <button
+                  onClick={handlePublishConfirm}
+                  className="px-[16px] py-[7px] border border-[#00B374] text-[#00B374] rounded-full font-medium flex items-center justify-center gap-1 cursor-pointer"
+                >
+                  <TiTick />
+                  Yes
+                </button>
+                <button
+                  onClick={handlePublishCancel}
                   className="px-[16px] py-[7px] border border-[#2185D0] text-[#989898] hover:text-[#2185D0] rounded-full transition cursor-pointer flex items-center justify-center gap-1"
                 >
                   <MdClose />

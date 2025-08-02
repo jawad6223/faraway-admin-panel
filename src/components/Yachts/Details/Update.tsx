@@ -18,7 +18,8 @@ import {
 } from "@/lib/Validation/addyachtsValidationSchema";
 import { MdDeleteOutline } from "react-icons/md";
 import { MdKeyboardArrowLeft } from "react-icons/md";
-import RichTextEditor from "../AddNewYachts/RichTextEditor";
+import RichTextEditor from "@/common/TextEditor";
+import Tick from "@/icons/Tick";
 
 
 interface CustomerProps {
@@ -158,7 +159,7 @@ const YachtsUpdate: React.FC<CustomerProps> = ({ goToPrevTab, id }) => {
             "Fuel Capacity": yachts?.fuelCapacity || "",
             "Water Capacity": yachts?.waterCapacity || "",
             Code: yachts?.code || "",
-            "Type": yachts?.type || "",
+            "Yacht Type": yachts?.type || "",
         },
         validationSchema: yachtsUpdateValidationSchema,
         onSubmit: async (values, { setSubmitting }) => {
@@ -197,7 +198,7 @@ const YachtsUpdate: React.FC<CustomerProps> = ({ goToPrevTab, id }) => {
                         "Fuel Capacity": true,
                         "Water Capacity": true,
                         Code: true,
-                        "Type": true,
+                        "Yacht Type": true,
                     });
                     setSubmitting(false);
                     return;
@@ -237,7 +238,7 @@ const YachtsUpdate: React.FC<CustomerProps> = ({ goToPrevTab, id }) => {
                             fuelCapacity: values["Fuel Capacity"] ?? "",
                             waterCapacity: values["Water Capacity"] ?? "",
                             code: values["Code"] ?? "",
-                            type: values["Type"],
+                            type: values["Yacht Type"],
                         },
                         yachtsId: id.toString(),
                     })
@@ -675,9 +676,9 @@ const YachtsUpdate: React.FC<CustomerProps> = ({ goToPrevTab, id }) => {
                         <MdKeyboardArrowLeft />
                         Back
                     </button>
-                    <button type="submit" disabled={loading} className={`rounded-full px-[16px] py-[8px] bg-[#001B48] hover:bg-[#222222] text-white flex items-center justify-center font-medium ${loading ? "cursor-not-allowed" : "cursor-pointer"
+                    <button type="submit" disabled={loading} className={`rounded-full px-[16px] py-[8px] bg-[#001B48] hover:bg-[#222222] text-white flex items-center justify-center gap-2 font-medium ${loading ? "cursor-not-allowed" : "cursor-pointer"
                         }`}>
-                        {loading ? "Update ..." : "Update"}
+                        {loading ? "Save ..." : <><Tick /> Save</>}
                     </button>
                 </div>
             </form>

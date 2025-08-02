@@ -82,6 +82,7 @@ export interface YachtsApiResponse {
   waterCapacity: string;
   type: string;
   code?: string;
+  status: string;
   createdAt: string;
   __v: number;
 }
@@ -113,6 +114,7 @@ interface YachtsState {
   currentPage: number;
   getLoading: boolean;
   deleteLoading: boolean;
+  publishLoading: boolean;
 }
 
 const initialState: YachtsState = {
@@ -126,6 +128,7 @@ const initialState: YachtsState = {
   currentPage: 1,
   getLoading: false,
   deleteLoading: false,
+  publishLoading: false,
 };
 
 // Add Yacht
@@ -205,65 +208,65 @@ export const getYachts = createAsyncThunk<
 export const getYachtsById = createAsyncThunk(
   "yachts/getYachtsById",
   async (
-      { yachtsId }: { yachtsId: string },
-      { rejectWithValue }
+    { yachtsId }: { yachtsId: string },
+    { rejectWithValue }
   ) => {
-      try {
-          const token = localStorage.getItem("token");
-          const response = await axios.get(
-              `https://faraway.thedevapp.online/yacht?id=${yachtsId}`,
-              {
-                  withCredentials: true,
-                  headers: {
-                      Authorization: `Bearer ${token}`,
-                  },
-              }
-          );
-          return {
-              yachts: response.data.data
-          };
-      } catch (error: unknown) {
-          const axiosError = error as AxiosError<{ message: string }>;
-          const message =
-              axiosError.response?.data?.message ||
-              axiosError.message ||
-              "Something went wrong";
-          return rejectWithValue({ error: { message } });
-      }
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        `https://faraway.thedevapp.online/yacht?id=${yachtsId}`,
+        {
+          withCredentials: true,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return {
+        yachts: response.data.data
+      };
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<{ message: string }>;
+      const message =
+        axiosError.response?.data?.message ||
+        axiosError.message ||
+        "Something went wrong";
+      return rejectWithValue({ error: { message } });
+    }
   }
 );
 
 export const updateYachts = createAsyncThunk(
   "yachts/updateYachts",
   async ({ payload, yachtsId }: { payload: AddYachtsPayload; yachtsId: string },
-      { rejectWithValue }) => {
-      try {
-          const token = localStorage.getItem("token");
-          const response = await axios.put(
-              `https://faraway.thedevapp.online/yacht/edit-yacht?id=${yachtsId}`,
-              payload,
-              {
-                  withCredentials: true,
-                  headers: {
-                      Authorization: `Bearer ${token}`,
-                      "Content-Type": "multipart/form-data",
-                  },
-              }
-          );
-          if (response?.data.error) {
-              throw new Error(
-                  response?.data?.error?.message || "Something went wrong"
-              );
-          }
-          return response.data.data;
-      } catch (error: unknown) {
-          const axiosError = error as AxiosError<{ message: string }>;
-          const message =
-              axiosError.response?.data?.message ||
-              axiosError.message ||
-              "Something went wrong";
-          return rejectWithValue({ error: { message } });
+    { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.put(
+        `https://faraway.thedevapp.online/yacht/edit-yacht?id=${yachtsId}`,
+        payload,
+        {
+          withCredentials: true,
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      if (response?.data.error) {
+        throw new Error(
+          response?.data?.error?.message || "Something went wrong"
+        );
       }
+      return response.data.data;
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<{ message: string }>;
+      const message =
+        axiosError.response?.data?.message ||
+        axiosError.message ||
+        "Something went wrong";
+      return rejectWithValue({ error: { message } });
+    }
   }
 );
 
@@ -303,6 +306,48 @@ export const deleteYachts = createAsyncThunk<
     }
   }
 );
+
+export const publishYacht = createAsyncThunk<
+  Yachts,
+  { yachtId: string; status: string },
+  { rejectValue: { error: { message: string } } }
+>(
+  "yachts/publishYacht",
+  async ({ yachtId, status }, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem("token");
+      const payload = {
+        status: status
+      };
+      const response = await axios.patch(
+        `https://faraway.thedevapp.online/yacht/update-status?id=${yachtId}`,
+        payload,
+        {
+          withCredentials: true,
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      if (response?.data.error) {
+        throw new Error(
+          response?.data?.error?.message || "Something went wrong"
+        );
+      }
+      return response.data.data;
+    } catch (error: unknown) {
+      console.error('Error in publishYacht:', error);
+      const axiosError = error as AxiosError<{ message: string }>;
+      const message =
+        axiosError.response?.data?.message ||
+        axiosError.message ||
+        "Something went wrong";
+      return rejectWithValue({ error: { message } });
+    }
+  }
+);
+
 
 const yachtsSlice = createSlice({
   name: "yachts",
@@ -397,6 +442,25 @@ const yachtsSlice = createSlice({
         state.deleteLoading = false;
         const payload = action.payload as { error: { message: string } };
         state.error = payload?.error?.message || "Failed to delete yacht.";
+      })
+      // Publish Yacht
+      .addCase(publishYacht.pending, (state) => {
+        state.publishLoading = true;
+        state.error = null;
+      })
+      .addCase(publishYacht.fulfilled, (state, action) => {
+        state.publishLoading = false;
+        // Update the yacht in the list with published status
+        const index = state.allYachts.findIndex(yacht => yacht._id === action.payload._id);
+        if (index !== -1) {
+          state.allYachts[index] = action.payload;
+        }
+        state.error = null;
+      })
+      .addCase(publishYacht.rejected, (state, action) => {
+        state.publishLoading = false;
+        const payload = action.payload as { error: { message: string } };
+        state.error = payload?.error?.message || "Failed to publish yacht.";
       });
   },
 });

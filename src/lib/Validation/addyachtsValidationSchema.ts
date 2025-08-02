@@ -35,7 +35,7 @@ export const yachtsvalidationSchema = Yup.object().shape({
   "Length Overall": Yup.string(),
   "Fuel Capacity": Yup.string(),
   "Water Capacity": Yup.string(),
-  "Type": Yup.string().required("Yacht Type is required"),
+  "Yacht Type": Yup.string().required("Yacht Type is required"),
   "Code": Yup.string(),
   "Primary Image": Yup.mixed<File>()
     .required("Primary Image is required")
@@ -106,7 +106,7 @@ export const yachtsUpdateValidationSchema = Yup.object().shape({
   "Length Overall": Yup.string(),
   "Fuel Capacity": Yup.string(),
   "Water Capacity": Yup.string(),
-  "Type": Yup.string().required("Yacht Type is required"),
+  "Yacht Type": Yup.string().required("Yacht Type is required"),
   "Code": Yup.string(),
   "Primary Image": Yup.mixed<File | string>()
     .required("Primary Image is required")

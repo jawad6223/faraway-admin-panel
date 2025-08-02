@@ -2,8 +2,6 @@
 
 import type React from "react"
 import { useRef, useCallback, useState, useEffect } from "react"
-import { Button } from "./Button"
-import { Separator } from "./Separator"
 import {
   Bold,
   Italic,
@@ -22,9 +20,11 @@ import {
   Outdent,
   Minus,
   ImageIcon,
-} from "lucide-react"
-import ImageResizeHandles from "./Image" 
-import TableContextMenu from "./Table" 
+} from "lucide-react";
+import { Button } from "./Button";
+import { Separator } from "./Separator";
+import ImageResizeHandles from "./Image"; 
+import TableContextMenu from "./Table"; 
 
 interface TableDimensions {
   rows: number
