@@ -20,7 +20,6 @@ const YachtsDetail = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const dispatch = useDispatch<AppDispatch>();
   const { allYachts, getLoading, totalPages, total } = useSelector((state: RootState) => state.yachts);
-  console.log(allYachts, "testing>>>>>")
   const [currentPages, setCurrentPages] = useState(1);
   const itemsPerPage = 10;
   const [yachtsToDelete, setYachtsToDelete] = useState<string | null>(null);

@@ -93,7 +93,7 @@ export const NewYachtsData: NewYachtsFormSection[] = [
         placeholder: "e.g,. http://www.youtube.com",
       },
       { label: "Badge", placeholder: "" },
-     
+      { label: "Slug", placeholder: "" },
     ],
   },
   {
