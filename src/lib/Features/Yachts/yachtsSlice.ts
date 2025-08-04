@@ -29,6 +29,7 @@ export interface AddYachtsPayload {
   videoLink2?: string;
   videoLink3?: string;
   badge?: string;
+  slug: string;
   design: string;
   built: string;
   cruisingSpeed: string;
@@ -74,6 +75,7 @@ export interface YachtsApiResponse {
   videoLink2?: string;
   videoLink3?: string;
   badge?: string;
+  slug: string;
   design: string;
   built: string;
   cruisingSpeed: string;
