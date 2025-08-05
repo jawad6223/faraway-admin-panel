@@ -10,12 +10,16 @@ import Settings from "@/icons/Settings";
 import { IoIosLogOut } from "react-icons/io";
 import Drawer from "../Drawer";
 import { AdminMenus } from "@/data/Sidebar/menu";
+import { RiBloggerLine } from "react-icons/ri";
+
 
 const screenMap: Record<string, { name: string; Icon: React.FC }> = {
   "/dashboard": { name: "Dashboard", Icon: Grid },
   "/yachts": { name: "Yachts", Icon: FaSailboat },
   "/yachts/addnewyachts": { name: "Yachts", Icon: FaSailboat },
   "/yachts/id": { name: "Yachts", Icon: FaSailboat },
+    "/blog": { name: "Blog", Icon: RiBloggerLine },
+  "/blog/addnewblog": { name: "Blog", Icon: RiBloggerLine },
   "/settings": { name: "Settings", Icon: Settings },
 };
 
@@ -45,12 +49,12 @@ const Header: React.FC = () => {
   };
 
   const pathname = usePathname();
-  
+
   let screenKey = pathname;
   if (/^\/yachts\/[^/]+$/.test(pathname) && pathname !== "/yachts" && pathname !== "/yachts/addnewyachts") {
     screenKey = "/yachts/id";
   }
-  
+
   const screen = screenMap[screenKey];
 
   return (
