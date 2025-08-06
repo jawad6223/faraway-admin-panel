@@ -143,7 +143,7 @@ const YachtsDetail = () => {
             No data available.
           </div>
         ) : allYachts?.length > 0 ? (
-          <div className="grid grid-cols-1 gap-3 mt-[12px]">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-[12px]">
             {currentItems.map((yachtItem, yachtIndex) => {
               const Box = [
                 {
@@ -175,64 +175,95 @@ const YachtsDetail = () => {
                 },
               ];
               return (
-                <div key={yachtIndex} className="bg-white border border-[#CECECE] rounded-lg shadow-md px-[8px] py-[8px] flex gap-4 items-center overflow-hidden">
-                  <div className="hidden md:block relative w-[37%] overflow-hidden">
+                <div
+                  key={yachtIndex}
+                  className="bg-white border border-[#CECECE] rounded-lg shadow-md py-4 px-2 flex gap-4 overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
+                  onClick={() => router.push(`/yachts/${yachtItem._id}`)}
+                >
+                  {/* Left side - Main image with tag */}
+                  <div className="relative w-[45%] overflow-hidden rounded-tl-3xl rounded-br-3xl">
                     <Image
                       src={yachtItem?.primaryImage}
                       alt="Yacht image"
                       width={300}
                       height={258}
-                      className="w-full h-[260px] object-cover rounded-lg"
+                      className="w-full h-[260px] object-cover"
                     />
+                    {/* Day charter tag on top of image */}
+                    <div className="absolute w-full bottom-0 rounded-tl-4xl bg-[#034250] text-white px-3 py-4 text-sm font-medium flex items-center gap-1">
+                      <p className="text-right font-extrabold font-plusjakarta text-base gradient-text w-full me-5">
+                        {yachtItem?.capacity}
+                      </p>
+                    </div>
                   </div>
-                  <div className="pt-[4px] border-r border-[#D1D1D1] pr-5 w-[70%]">
-                    <h3 className="font-plusjakarta font-extrabold text-[19px] text-[#0061B1]">{yachtItem.title}</h3>
-                    <div className="flex items-center gap-2 mt-[8px]">
+
+                  {/* Right side - Content */}
+                  <div className="flex flex-col justify-between flex-1">
+                    {/* Top section with title and edit button */}
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <h3 className="font-plusjakarta font-extrabold text-[20px] text-[#0061B1] flex-1">{yachtItem.title}</h3>
+                      </div>
+                      <div>
+                        <p className="text-[#3D3D3D] font-normal text-[13px] font-plusjakarta">
+                          Starting from
+                        </p>
+                        <p className="text-[#C3974C] font-plusjakarta font-extrabold text-[18px]">
+                          €{yachtItem.daytripPriceEuro}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Specs tags */}
+                    <div className="flex items-center gap-3 mt-2">
                       {Box.map((ft, index) => (
                         <div
                           key={index}
-                          className="flex items-center gap-2 py-[10px] px-[16px] border border-[#E8E8E8] bg-white rounded-md"
+                          className="flex items-center gap-2 py-2 px-3 border border-[#E8E8E8] bg-white rounded-lg"
                           style={{ boxShadow: "0px 4px 24px 0px #B5B5B540" }}
                         >
                           {ft.img && (
                             <Image src={ft.img} alt={`Yacht image ${index + 1}`} width={16} height={16} />
                           )}
                           {ft.icon && <ft.icon className="text-[#122B3F] text-[16px]" />}
-                          <span className="ml-1 font-normal text-[13px] text-[#1A2C37] font-plusjakarta">{ft.label}</span>
+                          <span className="font-normal text-[14px] text-[#1A2C37] font-plusjakarta">{ft.label}</span>
                         </div>
                       ))}
                     </div>
-                    <div className="flex gap-1 mt-[8px] items-center">
+
+                    {/* Cabin info */}
+                    <div className="flex gap-2 mt-3 items-center">
                       {Cabins.map((sk, index) => (
-                        <div key={index} className="flex items-center gap-2 py-[5px] px-[8px] border border-[#E8E8E8] bg-white rounded-md"
+                        <div key={index} className="flex items-center gap-2 py-2 px-3 border border-[#E8E8E8] bg-white rounded-lg"
                           style={{ boxShadow: "0px 4px 24px 0px #B5B5B540" }}>
                           {sk.img && <Image src={sk.img} alt={`Yacht image ${index + 1}`} width={12} height={12} />}
                           {sk.icon && <sk.icon className="text-[#122B3F] text-[16px]" />}
-                          <span className="ml-1 font-plusjakarta font-normal text-[13px] text-[#6D6D6D]">{sk.label}</span>
+                          <span className="font-plusjakarta font-normal text-[13px] text-[#6D6D6D]">{sk.label}</span>
                         </div>
                       ))}
                     </div>
-                    <div className="flex gap-2 mt-[28px] items-center">
-                      {yachtItem.galleryImages.slice(0, 6).map((sk, index) => (
+
+                    {/* Gallery images */}
+                    <div className="flex gap-2 mt-3 items-center">
+                      {yachtItem.galleryImages.slice(0, 3).map((sk, index) => (
                         <div key={index} className="flex items-center relative">
                           <Image
                             src={sk}
                             alt={`Yacht image ${index + 1}`}
                             width={54}
                             height={44}
-                            className="rounded-md w-[54px] h-[44px]"
+                            className="rounded-md w-[54px] h-[44px] object-cover"
                           />
                         </div>
                       ))}
                       {yachtItem.galleryImages.length > 6 && (
-                        <div
-                          className="relative">
+                        <div className="relative">
                           <Image
                             src={yachtItem.galleryImages[6]}
                             alt="Yacht image see all"
                             width={54}
                             height={44}
-                            className="rounded-md w-[54px] h-[44px]"
+                            className="rounded-md w-[54px] h-[44px] object-cover"
                           />
                           <div className="absolute inset-0 bg-[#0C0C0C]/70 rounded-md flex items-center justify-center">
                             <span className="text-white text-sm font-medium">{yachtItem.galleryImages.length - 6}</span>
@@ -240,51 +271,41 @@ const YachtsDetail = () => {
                         </div>
                       )}
                     </div>
-                  </div>
-                  <div className="pt-[1px] flex flex-col justify-between h-[16rem] w-[20%]">
-                    <div className="flex justify-end">
-                      <p className="gradient-text font-extrabold font-plusjakarta">{yachtItem?.capacity}</p>
-                    </div>
-                    <div className="flex flex-col items-end">
-                      <p className="text-[#3D3D3D] font-normal text-[13px] font-plusjakarta">
-                        Starting from
-                      </p>
-                      <p className="text-[#C3974C] font-plusjakarta font-extrabold text-[23px]">
-                        €{yachtItem.daytripPriceEuro}
-                      </p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <button
-                          onClick={(e) => handlePublishClick(e, yachtItem._id)}
-                          disabled={publishingYachtId === yachtItem._id}
-                          className={`px-[16px] py-[7px] rounded-full text-center font-medium 
+
+                    {/* Action buttons below gallery */}
+                    <div className="flex items-center gap-3 mt-3">
+                      <button
+                        className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          router.push(`/yachts/${yachtItem._id}`);
+                        }}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                        onClick={(e) => handleDeleteClick(e, yachtItem._id)}
+                      >
+                        Delete
+                      </button>
+                      <button
+                        onClick={(e) => handlePublishClick(e, yachtItem._id)}
+                        disabled={publishingYachtId === yachtItem._id}
+                        className={`px-4 py-2 rounded-lg font-medium transition-colors
                             ${publishingYachtId === yachtItem._id
-                              ? "bg-[#dc3545] text-white cursor-not-allowed"
-                              : yachtItem.status === "published"
-                                ? "bg-[#dc3545] hover:bg-[#c82333] text-white cursor-not-allowed"
-                                : "bg-[#012A50] hover:bg-[#5F5C63] text-white cursor-pointer"
-                            }`}
-                        >
-                          {publishingYachtId === yachtItem._id
-                            ? "Publishing..."
+                            ? "bg-red-500 text-white cursor-not-allowed"
                             : yachtItem.status === "published"
-                              ? "publish"
-                              : "Publish"}
-                        </button>
-
-                        <button
-                          className="px-[24px] py-[8px] cursor-pointer font-plusjakarta font-extrabold text-[13px] bg-[#001B48] hover:bg-[#5F5C63] text-white rounded-full"
-                          onClick={() => router.push(`/yachts/${yachtItem._id}`)}
-                        >
-                          View
-                        </button>
-                        <button
-                          className="px-[24px] py-[8px] cursor-pointer font-plusjakarta font-extrabold text-[13px] bg-[#001B48] hover:bg-[#5F5C63] text-white rounded-full"
-                          onClick={(e) => handleDeleteClick(e, yachtItem._id)}
-                        >
-                          Delete
-                        </button>
-                      </div>
-
+                              ? "bg-green-500 text-white cursor-not-allowed"
+                              : "bg-blue-500 hover:bg-blue-600 text-white cursor-pointer"
+                          }`}
+                      >
+                        {publishingYachtId === yachtItem._id
+                          ? "Publishing..."
+                          : yachtItem.status === "published"
+                            ? "Published"
+                            : "Publish"}
+                      </button>
                     </div>
                   </div>
                 </div>
