@@ -47,6 +47,7 @@ export interface YachtsApiResponse {
   _id: string;
   boatType: string;
   title: string;
+  description: string;
   price: string;
   capacity: string;
   length: string;
