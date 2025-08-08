@@ -79,6 +79,7 @@ const BlogDetail = () => {
         const blogData = {
           title: values.title,
           slug: values.slug,
+          status: "draft", // Add default status
           shortDescription: values.shortDescription,
           image: values.image,
           detailDescription: values.detailDescription,
