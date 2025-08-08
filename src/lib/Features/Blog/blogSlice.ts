@@ -184,7 +184,7 @@ export const getBlogById = createAsyncThunk<
             },
           }
         );
-      } catch (err1) {
+      } catch {
         try {
           // Try with path parameter
           response = await axios.get(
@@ -196,7 +196,7 @@ export const getBlogById = createAsyncThunk<
               },
             }
           );
-        } catch (err2) {
+        } catch {
           try {
             // Try with get-blog endpoint
             response = await axios.get(
@@ -263,7 +263,7 @@ export const updateBlog = createAsyncThunk<
       if (data.image) formData.append("image", data.image);
 
       // Log the FormData contents
-      for (let [key, value] of formData.entries()) {
+      for (const [key, value] of formData.entries()) {
         console.log(`FormData ${key}:`, value);
       }
 
@@ -283,7 +283,7 @@ export const updateBlog = createAsyncThunk<
             },
           }
         );
-      } catch (error1) {
+      } catch {
         try {
           // Try with query parameter
           response = await axios.put(
@@ -297,7 +297,7 @@ export const updateBlog = createAsyncThunk<
               },
             }
           );
-        } catch (error2) {
+        } catch {
           // Try with PATCH method
           response = await axios.patch(
             `https://faraway.thedevapp.online/blog/edit-blog/${blogId}`,
@@ -359,7 +359,7 @@ export const deleteBlog = createAsyncThunk<
             },
           }
         );
-      } catch (error1) {
+      } catch {
         // Try blog-specific endpoint
         response = await axios.delete(
           `https://faraway.thedevapp.online/blog/delete-blog/${blogId}`,
@@ -417,7 +417,7 @@ export const publishBlog = createAsyncThunk<
             },
           }
         );
-      } catch (error1) {
+      } catch {
         try {
           // Try blog-specific endpoint
           response = await axios.patch(
@@ -431,7 +431,7 @@ export const publishBlog = createAsyncThunk<
               },
             }
           );
-        } catch (error2) {
+        } catch {
           // Try using the update-blog endpoint with status
           response = await axios.put(
             `https://faraway.thedevapp.online/blog/update-status${blogId}`,
