@@ -7,14 +7,12 @@ import BreadCrum from "./BreadCrum";
 import { useSelector, useDispatch } from "react-redux";
 import { getYachts, deleteYachts, publishYacht } from "@/lib/Features/Yachts/yachtsSlice";
 import type { RootState, AppDispatch } from '@/lib/Store/store';
-import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { FaChevronLeft, FaChevronRight, FaEye, FaTrash, FaGlobe, FaArchive } from "react-icons/fa";
 import { MdOutlineBathroom, MdClose } from "react-icons/md";
 import { TiTick } from "react-icons/ti";
 import { toast, ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 import { IoPersonSharp } from "react-icons/io5";
-
-
 const YachtsDetail = () => {
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -25,9 +23,16 @@ const YachtsDetail = () => {
   const [yachtsToDelete, setYachtsToDelete] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [publishingYachtId, setPublishingYachtId] = useState<string | null>(null);
+  const [yachtToUnpublish, setYachtToUnpublish] = useState<string | null>(null);
   const [yachtToPublish, setYachtToPublish] = useState<string | null>(null);
   const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
+  const [isUnpublishModalOpen, setIsUnpublishModalOpen] = useState(false);
+  const [isClient, setIsClient] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
     dispatch(getYachts({ page: currentPages, limit: itemsPerPage }));
@@ -76,19 +81,12 @@ const YachtsDetail = () => {
     setIsModalOpen(true);
   };
 
-  const handlePublishClick = (e: React.MouseEvent, id: string) => {
-    e.stopPropagation();
-    if (publishingYachtId === id) return;
-    setYachtToPublish(id);
-    setIsPublishModalOpen(true);
-  };
-
   const handleConfirm = () => {
     if (yachtsToDelete) {
       dispatch(deleteYachts(yachtsToDelete))
         .unwrap()
         .then(() => {
-          toast.success("Yacht deleted successfully");
+          toast.success("Yachts deleted successfully");
           setIsModalOpen(false);
           dispatch(getYachts({ page: currentPages, limit: itemsPerPage }));
         })
@@ -99,18 +97,36 @@ const YachtsDetail = () => {
     setIsModalOpen(false);
   };
 
+  const handleCancel = () => {
+    setIsModalOpen(false);
+  };
+
+  const handlePublishClick = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    setYachtToPublish(id);
+    setIsPublishModalOpen(true);
+  };
+
   const handlePublishConfirm = async () => {
     if (yachtToPublish) {
       setPublishingYachtId(yachtToPublish);
       try {
-        const resultAction = await dispatch(publishYacht({ yachtId: yachtToPublish, status: "published" }));
+        const currentYacht = allYachts.find(yacht => yacht._id === yachtToPublish);
+        let newStatus: string;
+        if (currentYacht?.status === "published") {
+          newStatus = "draft";
+        } else {
+          newStatus = "published";
+        }
+        const resultAction = await dispatch(publishYacht({ yachtId: yachtToPublish, status: newStatus }));
         if (publishYacht.fulfilled.match(resultAction)) {
-          toast.success("Yacht published successfully");
+          const actionText = newStatus === "published" ? "published" : "archived";
+          toast.success(`Yacht ${actionText} successfully`);
         } else if (publishYacht.rejected.match(resultAction)) {
           const errorPayload = resultAction.payload as {
             error: { message: string };
           };
-          toast.error(errorPayload?.error?.message || "Failed to publish yacht.");
+          toast.error(errorPayload?.error?.message || "Failed to update yacht status.");
         }
       } catch (error) {
         console.error(error);
@@ -122,12 +138,49 @@ const YachtsDetail = () => {
     setIsPublishModalOpen(false);
   };
 
-  const handleCancel = () => {
-    setIsModalOpen(false);
+  const handleUnpublishClick = (e: React.MouseEvent, yachtId: string) => {
+    e.stopPropagation();
+    setYachtToUnpublish(yachtId);
+    setIsUnpublishModalOpen(true);
+  };
+
+  const handleUnpublishConfirm = async () => {
+    if (yachtToUnpublish) {
+      setPublishingYachtId(yachtToUnpublish);
+      try {
+        const resultAction = await dispatch(publishYacht({ yachtId: yachtToUnpublish, status: "draft" }));
+        if (publishYacht.fulfilled.match(resultAction)) {
+          toast.success("Yacht unpublished successfully");
+        } else if (publishYacht.rejected.match(resultAction)) {
+          const errorPayload = resultAction.payload as {
+            error: { message: string };
+          };
+          toast.error(errorPayload?.error?.message || "Failed to unpublish yacht.");
+        }
+      } catch (error) {
+        console.error(error);
+        toast.error("An unexpected error occurred");
+      } finally {
+        setPublishingYachtId(null);
+      }
+    }
+    setIsUnpublishModalOpen(false);
+  };
+
+  const handleUnpublishCancel = () => {
+    setIsUnpublishModalOpen(false);
   };
 
   const handlePublishCancel = () => {
     setIsPublishModalOpen(false);
+  };
+
+  // Get the current yacht and action text for the modal
+  const getModalText = () => {
+    if (!yachtToPublish || !allYachts.length) return "Are you sure you want to publish this yacht?";
+    const currentYacht = allYachts.find(yacht => yacht._id === yachtToPublish);
+    const actionText = currentYacht?.status === "published" ? "archive" : "publish";
+    return `Are you sure you want to ${actionText} this yacht?`;
   };
 
   return (
@@ -175,7 +228,7 @@ const YachtsDetail = () => {
                 },
               ];
               return (
-                <div key={yachtIndex} className="bg-white border border-[#CECECE] rounded-lg shadow-md px-[8px] py-[8px] flex gap-4 items-center overflow-hidden">
+                <div key={yachtIndex} className="bg-white border border-[#CECECE] rounded-lg shadow-md p-5 flex gap-4 items-center overflow-hidden" >
                   <div className="hidden md:block relative w-[37%] overflow-hidden">
                     <Image
                       src={yachtItem?.primaryImage}
@@ -186,7 +239,7 @@ const YachtsDetail = () => {
                     />
                   </div>
                   <div className="pt-[4px] border-r border-[#D1D1D1] pr-5 w-[70%]">
-                    <h3 className="font-plusjakarta font-extrabold text-[19px] text-[#0061B1]">{yachtItem.title}</h3>
+                    <h3 className="font-plusjakarta font-extrabold text-[26px] text-[#0061B1]">{yachtItem.title}</h3>
                     <div className="flex items-center gap-2 mt-[8px]">
                       {Box.map((ft, index) => (
                         <div
@@ -218,21 +271,23 @@ const YachtsDetail = () => {
                           <Image
                             src={sk}
                             alt={`Yacht image ${index + 1}`}
-                            width={54}
-                            height={44}
-                            className="rounded-md w-[54px] h-[44px]"
+                            width={63}
+                            height={52}
+                            className="rounded-md cursor-pointer w-[63px] h-[52px]"
                           />
                         </div>
                       ))}
                       {yachtItem.galleryImages.length > 6 && (
                         <div
-                          className="relative">
+                          className="relative cursor-pointer"
+                          onClick={() => console.log("See All clicked")}
+                        >
                           <Image
                             src={yachtItem.galleryImages[6]}
                             alt="Yacht image see all"
-                            width={54}
-                            height={44}
-                            className="rounded-md w-[54px] h-[44px]"
+                            width={63}
+                            height={52}
+                            className="rounded-md w-[63px] h-[52px]"
                           />
                           <div className="absolute inset-0 bg-[#0C0C0C]/70 rounded-md flex items-center justify-center">
                             <span className="text-white text-sm font-medium">{yachtItem.galleryImages.length - 6}</span>
@@ -241,9 +296,9 @@ const YachtsDetail = () => {
                       )}
                     </div>
                   </div>
-                  <div className="pt-[1px] flex flex-col justify-between h-[16rem] w-[20%]">
+                  <div className="pt-[1px] flex flex-col justify-between h-[16rem] w-[30%]">
                     <div className="flex justify-end">
-                      <p className="gradient-text font-extrabold font-plusjakarta">{yachtItem?.capacity}</p>
+                      <p className="gradient-text font-extrabold text-[22px] font-plusjakarta">{yachtItem?.capacity}</p>
                     </div>
                     <div className="flex flex-col items-end">
                       <p className="text-[#3D3D3D] font-normal text-[13px] font-plusjakarta">
@@ -252,39 +307,63 @@ const YachtsDetail = () => {
                       <p className="text-[#C3974C] font-plusjakarta font-extrabold text-[23px]">
                         €{yachtItem.daytripPriceEuro}
                       </p>
-                      <div className="flex items-center gap-2 mt-1">
+                      <div className="flex items-center gap-2 mt-3">
                         <button
-                          onClick={(e) => handlePublishClick(e, yachtItem._id)}
+                          onClick={(e) => {
+                            if (yachtItem.status === "published") {
+                              handleUnpublishClick(e, yachtItem._id);
+                            } else {
+                              handlePublishClick(e, yachtItem._id);
+                            }
+                          }}                            
                           disabled={publishingYachtId === yachtItem._id}
-                          className={`px-[16px] py-[7px] rounded-full text-center font-medium 
-                            ${publishingYachtId === yachtItem._id
-                              ? "bg-[#dc3545] text-white cursor-not-allowed"
+                          className={`px-[16px] py-[7px] rounded-full text-center font-medium flex items-center gap-1
+                               ${publishingYachtId === yachtItem._id
+                              ? "bg-[#012A50] text-white cursor-not-allowed"
                               : yachtItem.status === "published"
-                                ? "bg-[#dc3545] hover:bg-[#c82333] text-white cursor-not-allowed"
+                                ? "bg-[#012A50] hover:bg-[#5F5C63] text-white cursor-pointer"
                                 : "bg-[#012A50] hover:bg-[#5F5C63] text-white cursor-pointer"
                             }`}
                         >
-                          {publishingYachtId === yachtItem._id
-                            ? "Publishing..."
-                            : yachtItem.status === "published"
-                              ? "publish"
-                              : "Publish"}
+                          {publishingYachtId === yachtItem._id ? (
+                            yachtItem.status === "published" ? (
+                              <>
+                                <FaArchive className="text-sm" />
+                                Archiving...
+                              </>
+                            ) : (
+                              <>
+                                <FaGlobe className="text-sm" />
+                                Publishing...
+                              </>
+                            )
+                          ) : yachtItem.status === "published" ? (
+                            <>
+                              <FaArchive className="text-[15px]" />
+                              Publish
+                            </>
+                          ) : (
+                            <>
+                              <FaGlobe className="text-[15px]" />
+                              Draft
+                            </>
+                          )}
                         </button>
-
                         <button
-                          className="px-[24px] py-[8px] cursor-pointer font-plusjakarta font-extrabold text-[13px] bg-[#001B48] hover:bg-[#5F5C63] text-white rounded-full"
+                          className="px-[24px] py-[8px] cursor-pointer font-plusjakarta font-extrabold text-[15px] bg-[#001B48] hover:bg-[#5F5C63] text-white rounded-full flex items-center gap-1"
                           onClick={() => router.push(`/yachts/${yachtItem._id}`)}
                         >
+                          <FaEye className="text-sm" />
                           View
                         </button>
                         <button
-                          className="px-[24px] py-[8px] cursor-pointer font-plusjakarta font-extrabold text-[13px] bg-[#001B48] hover:bg-[#5F5C63] text-white rounded-full"
+                          className="px-[24px] py-[8px] cursor-pointer font-plusjakarta font-extrabold text-[15px] bg-[#001B48] hover:bg-[#5F5C63] text-white rounded-full flex items-center gap-1"
                           onClick={(e) => handleDeleteClick(e, yachtItem._id)}
                         >
+                          <FaTrash className="text-sm" />
                           Delete
                         </button>
                       </div>
-
                     </div>
                   </div>
                 </div>
@@ -346,11 +425,11 @@ const YachtsDetail = () => {
           </div>
         )}
 
-        {isPublishModalOpen && !publishingYachtId && (
+        {isPublishModalOpen && !publishingYachtId && isClient && (
           <div className="fixed inset-0 z-20 flex items-center justify-center bg-[#BABBBB]/40 bg-opacity-50">
             <div className="bg-white rounded-xl p-6 w-80">
               <h2 className="text-lg font-semibold text-center">
-                Are you sure you want to publish this yacht?
+                {getModalText()}
               </h2>
               <div className="flex justify-center items-center gap-3 mt-3">
                 <button
@@ -362,6 +441,32 @@ const YachtsDetail = () => {
                 </button>
                 <button
                   onClick={handlePublishCancel}
+                  className="px-[16px] py-[7px] border border-[#2185D0] text-[#989898] hover:text-[#2185D0] rounded-full transition cursor-pointer flex items-center justify-center gap-1"
+                >
+                  <MdClose />
+                  No
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {isUnpublishModalOpen && (
+          <div className="fixed inset-0 z-20 flex items-center justify-center bg-[#BABBBB]/40 bg-opacity-50">
+            <div className="bg-white rounded-xl p-6 w-80">
+              <h2 className="text-lg font-semibold text-center">
+                Are you sure you want to unpublish this yacht?
+              </h2>
+              <div className="flex justify-center items-center gap-3 mt-3">
+                <button
+                  onClick={handleUnpublishConfirm}
+                  className="px-[16px] py-[7px] border border-[#dc3545] text-[#dc3545] rounded-full font-medium flex items-center justify-center gap-1 cursor-pointer"
+                >
+                  <TiTick />
+                  Yes
+                </button>
+                <button
+                  onClick={handleUnpublishCancel}
                   className="px-[16px] py-[7px] border border-[#2185D0] text-[#989898] hover:text-[#2185D0] rounded-full transition cursor-pointer flex items-center justify-center gap-1"
                 >
                   <MdClose />
