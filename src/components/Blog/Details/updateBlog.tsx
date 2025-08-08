@@ -123,7 +123,14 @@ const BlogUpdate: React.FC<CustomerProps> = ({ goToPrevTab, id }) => {
                 }
 
                 // Prepare the data object, only including fields that have values
-                const updateData: any = {};
+                const updateData: {
+                    title?: string;
+                    slug?: string;
+                    shortDescription?: string;
+                    detailDescription?: string;
+                    status?: string;
+                    image?: File;
+                } = {};
                 if (values.title) updateData.title = values.title;
                 if (values.slug) updateData.slug = values.slug;
                 if (values.shortDescription) updateData.shortDescription = values.shortDescription;
@@ -194,7 +201,6 @@ const BlogUpdate: React.FC<CustomerProps> = ({ goToPrevTab, id }) => {
                     </h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-2 xl:grid-cols-4 gap-4">
                         {blogFields.map((field, index) => {
-                            const value = formik.values[field.name as keyof typeof formik.values] ?? "";
                             const isFileUpload = field.type === "file";
                             const fieldName = field.name as keyof FormBlogUpdateValues;
                             const fieldError = getFieldError(fieldName);

@@ -102,7 +102,7 @@ const BlogDetail = () => {
     },
   });
 
-  const renderInputField = (field: any) => {
+  const renderInputField = (field: { name: string; type: string; placeholder: string; label: string; required?: boolean }) => {
     const fieldName = field.name as keyof FormValues;
     const fieldError = formik.touched[fieldName] && formik.errors[fieldName];
     

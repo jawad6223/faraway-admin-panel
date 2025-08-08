@@ -7,9 +7,8 @@ import BreadCrum from "./BreadCrum";
 import { useSelector, useDispatch } from "react-redux";
 import { getBlogs, deleteBlog, publishBlog } from "@/lib/Features/Blog/blogSlice";
 import type { RootState, AppDispatch } from '@/lib/Store/store';
-import { FaChevronLeft, FaChevronRight, FaEye, FaTrash, FaGlobe, FaArchive } from "react-icons/fa";
+import { FaChevronLeft, FaChevronRight, FaTrash, FaGlobe, FaArchive } from "react-icons/fa";
 import { MdClose } from "react-icons/md";
-import { MdDeleteOutline } from "react-icons/md";
 import { TiTick } from "react-icons/ti";
 import { toast, ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
@@ -90,8 +89,9 @@ const BlogDetail = () => {
           setIsModalOpen(false);
           dispatch(getBlogs({ page: currentPages, limit: itemsPerPage }));
         })
-        .catch((error: any) => {
-          toast.error(error.message || "Failed to delete blog");
+        .catch((error: unknown) => {
+          const errorMessage = error instanceof Error ? error.message : "Failed to delete blog";
+          toast.error(errorMessage);
         });
     }
     setIsModalOpen(false);
@@ -132,7 +132,7 @@ const BlogDetail = () => {
           };
           toast.error(errorPayload?.error?.message || "Failed to update blog status.");
         }
-      } catch (error) {
+      } catch {
         toast.error("An unexpected error occurred");
       } finally {
         setPublishingYachtId(null);
@@ -162,7 +162,7 @@ const BlogDetail = () => {
           };
           toast.error(errorPayload?.error?.message || "Failed to unpublish blog.");
         }
-      } catch (error) {
+      } catch {
         toast.error("An unexpected error occurred");
       } finally {
         setPublishingYachtId(null);
@@ -226,7 +226,9 @@ const BlogDetail = () => {
                         </button>
                       </div>
                       <div className="absolute bottom-0 bg-[#001B48] w-full py-4 rounded-tl-4xl">
-                        <h3 className="font-plusjakarta font-extrabold text-center text-base md:text-lg lg:text-xl text-white leading-tight px-4">{blogItem.title}</h3>
+                        <h3 className="font-plusjakarta font-extrabold text-center text-base md:text-lg lg:text-xl text-white leading-tight px-4">
+                          {blogItem.title.length > 27 ? `${blogItem.title.substring(0, 27)}...` : blogItem.title}
+                        </h3>
                       </div>
                     </div>
                     <div className="pt-[4px] px-4">
