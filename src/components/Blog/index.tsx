@@ -9,6 +9,7 @@ import { getBlogs, deleteBlog, publishBlog } from "@/lib/Features/Blog/blogSlice
 import type { RootState, AppDispatch } from '@/lib/Store/store';
 import { FaChevronLeft, FaChevronRight, FaEye, FaTrash, FaGlobe, FaArchive } from "react-icons/fa";
 import { MdClose } from "react-icons/md";
+import { MdDeleteOutline } from "react-icons/md";
 import { TiTick } from "react-icons/ti";
 import { toast, ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
@@ -200,77 +201,78 @@ const BlogDetail = () => {
             No data available.
           </div>
         ) : allBlogs?.length > 0 ? (
-          <div className="grid grid-cols-2 gap-3 mt-[12px]">
+          <div className="grid grid-cols-3 gap-7 mt-[12px]">
             {currentItems.map((blogItem, blogIndex) => {
               return (
-                <div key={blogIndex} className="bg-white border border-[#CECECE] rounded-lg shadow-md p-3 flex gap-4 items-center overflow-hidden" >
-                  <div className="hidden md:block relative w-[37%] overflow-hidden">
-                    <Image
-                      src={blogItem?.image}
-                      alt="Blog image"
-                      width={450}
-                      height={258}
-                      className="w-[450px] h-[220px] object-cover rounded-lg"
-                    />
-                  </div>
-                  <div className="pt-[4px] ">
-                    <h3 className="font-plusjakarta font-extrabold text-[26px] text-[#0061B1]">{blogItem.title}</h3>
-                    <p className="font-plusjakarta font-normal text-[16px] text-[#666666] mt-2">{blogItem.shortDescription}</p>
-                    <div className="flex items-center gap-2 mt-3">
-                      <button
-                        onClick={(e) => {
-                          const currentStatus = blogItem.status || "draft";
-                          if (currentStatus === "published") {
-                            handleUnpublishClick(e, blogItem._id);
-                          } else {
-                            handlePublishClick(e, blogItem._id);
-                          }
-                        }}
-                        disabled={publishingYachtId === blogItem._id}
-                        className={`px-[16px] py-[7px] rounded-full text-center font-medium flex items-center gap-1
-                             ${publishingYachtId === blogItem._id
-                            ? "bg-[#012A50] text-white cursor-not-allowed"
-                            : "bg-[#012A50] hover:bg-[#5F5C63] text-white cursor-pointer"
-                          }`}
-                      >
-                        {publishingYachtId === blogItem._id ? (
-                          (blogItem.status || "draft") === "published" ? (
+                <div key={blogIndex} className="group cursor-pointer mb-3 pb-5 border border-gray-300 rounded-tl-3xl rounded-b-lg overflow-hidden bg-white hover:shadow-2xl hover:scale-[1.03] transition-transform duration-300" >
+                  <div
+                    className="w-full cursor-pointer"
+                    onClick={() => router.push(`/blog/${blogItem._id}`)}
+                  >
+                    <div className="hidden md:block relative rounded-tl-3xl rounded-br-3xl w-full overflow-hidden">
+                      <Image
+                        src={blogItem?.image}
+                        alt="Blog image"
+                        width={450}
+                        height={258}
+                        className="w-full h-[270px] object-cover "
+                      />
+                      <div className="absolute top-3 right-4 z-10">
+                        <button
+                          className="cursor-pointer font-plusjakarta font-extrabold text-sm text-red-500 flex items-center gap-1 bg-[#012A50] backdrop-blur-sm p-2 rounded-full hover:bg-[#5F5C63] transition-colors"
+                          onClick={(e) => handleDeleteClick(e, blogItem._id)}
+                        >
+                          <FaTrash className="text-white text-lg" />
+                        </button>
+                      </div>
+                      <div className="absolute bottom-0 bg-[#001B48] w-full py-4 rounded-tl-4xl">
+                        <h3 className="font-plusjakarta font-extrabold text-center text-base md:text-lg lg:text-xl text-white leading-tight px-4">{blogItem.title}</h3>
+                      </div>
+                    </div>
+                    <div className="pt-[4px] px-4">
+                      <p className="font-plusjakarta font-normal text-base lg:text-lg text-[#666666] mt-2">{blogItem.shortDescription}</p>
+                      <div className="flex items-center justify-center gap-2 mt-3">
+                        <button
+                          onClick={(e) => {
+                            const currentStatus = blogItem.status || "draft";
+                            if (currentStatus === "published") {
+                              handleUnpublishClick(e, blogItem._id);
+                            } else {
+                              handlePublishClick(e, blogItem._id);
+                            }
+                          }}
+                          disabled={publishingYachtId === blogItem._id}
+                          className={`px-[22px] py-[7px] rounded-full text-center font-medium flex items-center gap-1
+                               ${publishingYachtId === blogItem._id
+                              ? "bg-[#012A50] text-white cursor-not-allowed"
+                              : "bg-[#012A50] hover:bg-[#5F5C63] text-white cursor-pointer"
+                            }`}
+                        >
+                          {publishingYachtId === blogItem._id ? (
+                            (blogItem.status || "draft") === "published" ? (
+                              <>
+                                <FaArchive className="text-sm" />
+                                Archiving...
+                              </>
+                            ) : (
+                              <>
+                                <FaGlobe className="text-sm" />
+                                Publishing...
+                              </>
+                            )
+                          ) : (blogItem.status || "draft") === "published" ? (
                             <>
                               <FaArchive className="text-sm" />
-                              Archiving...
+                              Publish
                             </>
                           ) : (
                             <>
                               <FaGlobe className="text-sm" />
-                              Publishing...
+                              Draft
                             </>
-                          )
-                        ) : (blogItem.status || "draft") === "published" ? (
-                          <>
-                            <FaArchive className="text-sm" />
-                            Publish
-                          </>
-                        ) : (
-                          <>
-                            <FaGlobe className="text-sm" />
-                            Draft
-                          </>
-                        )}
-                      </button>
-                      <button
-                        className="px-[24px] py-[8px] cursor-pointer font-plusjakarta font-extrabold text-sm bg-[#001B48] hover:bg-[#5F5C63] text-white rounded-full flex items-center gap-1"
-                        onClick={() => router.push(`/blog/${blogItem._id}`)}
-                      >
-                        <FaEye className="text-sm" />
-                        View
-                      </button>
-                      <button
-                        className="px-[24px] py-[8px] cursor-pointer font-plusjakarta font-extrabold text-sm bg-[#001B48] hover:bg-[#5F5C63] text-white rounded-full flex items-center gap-1"
-                        onClick={(e) => handleDeleteClick(e, blogItem._id)}
-                      >
-                        <FaTrash className="text-sm" />
-                        Delete
-                      </button>
+                          )}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -362,7 +364,7 @@ const BlogDetail = () => {
           <div className="fixed inset-0 z-20 flex items-center justify-center bg-[#BABBBB]/40 bg-opacity-50">
             <div className="bg-white rounded-xl p-6 w-80">
               <h2 className="text-lg font-semibold text-center">
-                Are you sure you want to unpublish this yacht?
+                Are you sure you want to unpublish this blog?
               </h2>
               <div className="flex justify-center items-center gap-3 mt-3">
                 <button

@@ -25,7 +25,7 @@ export interface BlogResponse {
 export interface AddBlogPayload {
   title: string;
   slug: string;
-  status: "draft" | "published";
+  status: string;
   shortDescription: string;
   detailDescription: string;
   image: File;
@@ -169,22 +169,71 @@ export const getBlogById = createAsyncThunk<
   ) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(
-        `https://faraway.thedevapp.online/blog?id=${blogId}`,
-        {
-          withCredentials: true,
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+      
+      // Try different endpoint patterns
+      let response;
+      let error;
+      
+      try {
+        // Try with query parameter
+        response = await axios.get(
+          `https://faraway.thedevapp.online/blog/blogByID?id=${blogId}`,
+          {
+            withCredentials: true,
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+      } catch (err1) {
+        try {
+          // Try with path parameter
+          response = await axios.get(
+            `https://faraway.thedevapp.online/blog/blogByID/${blogId}`,
+            {
+              withCredentials: true,
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+        } catch (err2) {
+          try {
+            // Try with get-blog endpoint
+            response = await axios.get(
+              `https://faraway.thedevapp.online/blog/get-blog/${blogId}`,
+              {
+                withCredentials: true,
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            );
+          } catch (err3) {
+            error = err3;
+          }
         }
-      );
+      }
+      
+      if (error) {
+        throw error;
+      }
+      
+      console.log("Blog API Response:", response?.data);
+      
+      if (!response) {
+        throw new Error("No response received from API");
+      }
+      
       return {
-        blogs: response.data.data
+        blogs: response.data.data || response.data
       };
     } catch (error: unknown) {
-      const axiosError = error as AxiosError<{ message: string }>;
+      const axiosError = error as AxiosError<{ message: string; error?: { message: string } }>;
+      console.log("Blog API Error:", axiosError.response?.data);
       const message =
         axiosError.response?.data?.message ||
+        axiosError.response?.data?.error?.message ||
         axiosError.message ||
         "Something went wrong";
       return rejectWithValue({ error: { message } });
@@ -204,23 +253,69 @@ export const updateBlog = createAsyncThunk<
       const token = localStorage.getItem("token");
       const formData = new FormData();
 
+      // Log the data being sent for debugging
+      console.log("Update Blog Data:", data);
+
       if (data.title) formData.append("title", data.title);
       if (data.slug) formData.append("slug", data.slug);
       if (data.shortDescription) formData.append("shortDescription", data.shortDescription);
       if (data.detailDescription) formData.append("detailDescription", data.detailDescription);
+      if (data.status) formData.append("status", data.status);
       if (data.image) formData.append("image", data.image);
 
-      const response = await axios.put(
-        `https://faraway.thedevapp.online/blog/update-blog/${blogId}`,
-        formData,
-        {
-          withCredentials: true,
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
-          },
+      // Log the FormData contents
+      for (let [key, value] of formData.entries()) {
+        console.log(`FormData ${key}:`, value);
+      }
+
+      // Try different endpoint patterns for blog update
+      let response;
+      
+      try {
+        // Try the original endpoint
+        response = await axios.put(
+          `https://faraway.thedevapp.online/blog/edit-blog/${blogId}`,
+          formData,
+          {
+            withCredentials: true,
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+      } catch (error1) {
+        try {
+          // Try with query parameter
+          response = await axios.put(
+            `https://faraway.thedevapp.online/blog/edit-blog?id=${blogId}`,
+            formData,
+            {
+              withCredentials: true,
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "multipart/form-data",
+              },
+            }
+          );
+        } catch (error2) {
+          // Try with PATCH method
+          response = await axios.patch(
+            `https://faraway.thedevapp.online/blog/edit-blog/${blogId}`,
+            formData,
+            {
+              withCredentials: true,
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "multipart/form-data",
+              },
+            }
+          );
         }
-      );
+      }
+      
+      console.log("Update Blog Response:", response.data);
+      
       if (response?.data.error) {
         throw new Error(
           response?.data?.error?.message || "Something went wrong"
@@ -228,9 +323,11 @@ export const updateBlog = createAsyncThunk<
       }
       return response.data;
     } catch (error: unknown) {
-      const axiosError = error as AxiosError<{ message: string }>;
+      const axiosError = error as AxiosError<{ message: string; error?: { message: string } }>;
+      console.log("Update Blog Error:", axiosError.response?.data);
       const message =
         axiosError.response?.data?.message ||
+        axiosError.response?.data?.error?.message ||
         axiosError.message ||
         "Something went wrong";
       return rejectWithValue({ error: { message } });
@@ -248,15 +345,34 @@ export const deleteBlog = createAsyncThunk<
   async (blogId, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.delete(
-        `https://faraway.thedevapp.online/blog/delete-blog/${blogId}`,
-        {
-          withCredentials: true,
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      
+      // Try different endpoint patterns for blog deletion
+      let response;
+      
+      try {
+        // Try yacht-style endpoint
+        response = await axios.delete(
+          `https://faraway.thedevapp.online/blog/delete-blog?id=${blogId}`,
+          {
+            withCredentials: true,
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+      } catch (error1) {
+        // Try blog-specific endpoint
+        response = await axios.delete(
+          `https://faraway.thedevapp.online/blog/delete-blog/${blogId}`,
+          {
+            withCredentials: true,
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+      }
+      
       if (response?.data.error) {
         throw new Error(
           response?.data?.error?.message || "Something went wrong"
@@ -264,9 +380,10 @@ export const deleteBlog = createAsyncThunk<
       }
       return response.data;
     } catch (error: unknown) {
-      const axiosError = error as AxiosError<{ message: string }>;
+      const axiosError = error as AxiosError<{ message: string; error?: { message: string } }>;
       const message =
         axiosError.response?.data?.message ||
+        axiosError.response?.data?.error?.message ||
         axiosError.message ||
         "Something went wrong";
       return rejectWithValue({ error: { message } });
@@ -284,11 +401,9 @@ export const publishBlog = createAsyncThunk<
   async ({ blogId, status }, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem("token");
-      console.log('Publishing blog with ID:', blogId, 'Status:', status, 'Token:', token ? 'Present' : 'Missing');
       
       // Try different endpoint patterns for blog status update
       let response;
-      let endpointUsed = '';
       
       try {
         // Try yacht-style endpoint
@@ -303,10 +418,7 @@ export const publishBlog = createAsyncThunk<
             },
           }
         );
-        endpointUsed = 'yacht-style';
-        console.log('Used yacht-style endpoint successfully');
       } catch (error1) {
-        console.log('Yacht-style endpoint failed:', error1);
         try {
           // Try blog-specific endpoint
           response = await axios.patch(
@@ -320,10 +432,7 @@ export const publishBlog = createAsyncThunk<
               },
             }
           );
-          endpointUsed = 'blog-specific';
-          console.log('Used blog-specific endpoint successfully');
         } catch (error2) {
-          console.log('Blog-specific endpoint failed:', error2);
           // Try using the update-blog endpoint with status
           response = await axios.put(
             `https://faraway.thedevapp.online/blog/update-status${blogId}`,
@@ -336,11 +445,8 @@ export const publishBlog = createAsyncThunk<
               },
             }
           );
-          endpointUsed = 'update-blog';
-          console.log('Used update-blog endpoint successfully');
         }
       }
-      console.log('Publish API response:', response.data);
       
       if (response?.data.error) {
         throw new Error(
@@ -349,14 +455,9 @@ export const publishBlog = createAsyncThunk<
       }
       // Handle both response.data and response.data.data structures
       const result = response.data.data || response.data;
-      console.log('Publish result:', result);
       return result;
     } catch (error: unknown) {
-      console.error('Error in publishBlog:', error);
       const axiosError = error as AxiosError<{ message: string; error?: { message: string } }>;
-      console.error('Axios error response:', axiosError.response?.data);
-      console.error('Axios error status:', axiosError.response?.status);
-      console.error('Axios error message:', axiosError.message);
       const message =
         axiosError.response?.data?.message ||
         axiosError.response?.data?.error?.message ||
