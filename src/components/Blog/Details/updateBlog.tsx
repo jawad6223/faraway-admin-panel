@@ -1,7 +1,6 @@
 "use client"
 
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { useSelector, useDispatch } from "react-redux";
 import { updateBlog, getBlogById } from "@/lib/Features/Blog/blogSlice";
 import type { AppDispatch, RootState } from '@/lib/Store/store';
