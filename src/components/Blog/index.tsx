@@ -90,8 +90,9 @@ const BlogDetail = () => {
           setIsModalOpen(false);
           dispatch(getBlogs({ page: currentPages, limit: itemsPerPage }));
         })
-        .catch((error: any) => {
-          toast.error(error.message || "Failed to delete blog");
+        .catch((error: unknown) => {
+          const errorMessage = error instanceof Error ? error.message : "Failed to delete blog";
+          toast.error(errorMessage);
         });
     }
     setIsModalOpen(false);
@@ -132,7 +133,7 @@ const BlogDetail = () => {
           };
           toast.error(errorPayload?.error?.message || "Failed to update blog status.");
         }
-      } catch (error) {
+      } catch (error: unknown) {
         toast.error("An unexpected error occurred");
       } finally {
         setPublishingYachtId(null);
@@ -162,7 +163,7 @@ const BlogDetail = () => {
           };
           toast.error(errorPayload?.error?.message || "Failed to unpublish blog.");
         }
-      } catch (error) {
+      } catch (error: unknown) {
         toast.error("An unexpected error occurred");
       } finally {
         setPublishingYachtId(null);
