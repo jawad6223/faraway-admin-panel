@@ -293,6 +293,7 @@ const BlogUpdate: React.FC<CustomerProps> = ({ goToPrevTab, id }) => {
                                                     formik.setFieldTouched(fieldName, true, false);
                                                 }}
                                                 onBlur={formik.handleBlur}
+                                                maxLength={field.name === "shortDescription" ? 600 : undefined}
                                                 className={`placeholder:text-[#999999] outline-none text-[#222222] w-full bg-[#F0F2F4] rounded-lg px-3 py-2  ${fieldError ? "border border-[#DB2828]" : ""
                                                     }`}
                                             />

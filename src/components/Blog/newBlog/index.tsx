@@ -17,6 +17,7 @@ type FormValues = {
   title: string;
   shortDescription: string;
   detailDescription: string;
+  status?: string;
 };
 
 const blogFields = [
@@ -76,14 +77,38 @@ const BlogDetail = () => {
       }
 
       try {
+        // Validate required fields
+        if (!values.title || values.title.trim().length < 3) {
+          toast.error("Title must be at least 3 characters");
+          return;
+        }
+        
+        if (!values.slug || values.slug.trim().length < 3) {
+          toast.error("Slug must be at least 3 characters");
+          return;
+        }
+        
+        // Validate slug format
+        if (!/^[a-z0-9-]+$/.test(values.slug)) {
+          toast.error("Slug can only contain lowercase letters, numbers, and hyphens");
+          return;
+        }
+        
+        if (!values.shortDescription || values.shortDescription.trim().length < 10) {
+          toast.error("Short description must be at least 10 characters");
+          return;
+        }
+
         const blogData = {
-          title: values.title,
-          slug: values.slug,
+          title: values.title.trim(),
+          slug: values.slug.trim().toLowerCase(),
           status: "draft", // Add default status
-          shortDescription: values.shortDescription,
+          shortDescription: values.shortDescription.trim(),
           image: values.image,
-          detailDescription: values.detailDescription,
+          detailDescription: values.detailDescription.trim(),
         };
+        
+        console.log("Submitting blog data:", blogData);
 
         const resultAction = await dispatch(addBlog(blogData));
         if (addBlog.fulfilled.match(resultAction)) {
@@ -137,6 +162,7 @@ const BlogDetail = () => {
           formik.setFieldTouched(fieldName, true, false);
         }}
         onBlur={formik.handleBlur}
+        maxLength={field.name === "shortDescription" ? 600 : undefined}
         className={`placeholder:text-[#999999] outline-none text-[#222222] w-full bg-[#F0F2F4] rounded-lg px-3 py-2 ${
           fieldError ? "border border-[#DB2828]" : ""
         }`}

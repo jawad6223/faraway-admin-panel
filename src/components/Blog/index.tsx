@@ -231,8 +231,8 @@ const BlogDetail = () => {
                         </h3>
                       </div>
                     </div>
-                    <div className="pt-[4px] px-4">
-                      <p className="font-plusjakarta font-normal text-base lg:text-lg text-[#666666] mt-2">{blogItem.shortDescription.length > 200 ? `${blogItem.shortDescription.substring(0, 200)}...` : blogItem.shortDescription}</p>
+                    <div className="pt-[4px] px-4 flex flex-col h-50">
+                      <p className="font-plusjakarta font-normal text-base lg:text-lg text-[#666666] mt-2 flex-1 overflow-hidden line-clamp-3">{blogItem.shortDescription.length > 200 ? `${blogItem.shortDescription.substring(0, 200)}...` : blogItem.shortDescription}</p>
                       <div className="flex items-center justify-center gap-2 mt-3">
                         <button
                           onClick={(e) => {
