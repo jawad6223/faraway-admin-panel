@@ -84,9 +84,11 @@ export const addBlog = createAsyncThunk<
   async (credentials, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem("token");
+      
       const formData = new FormData();
       formData.append("title", credentials.title);
       formData.append("slug", credentials.slug);
+      formData.append("status", credentials.status);
       formData.append("shortDescription", credentials.shortDescription);
       formData.append("detailDescription", credentials.detailDescription);
       formData.append("image", credentials.image);
@@ -218,8 +220,6 @@ export const getBlogById = createAsyncThunk<
         throw error;
       }
       
-      console.log("Blog API Response:", response?.data);
-      
       if (!response) {
         throw new Error("No response received from API");
       }
@@ -229,7 +229,6 @@ export const getBlogById = createAsyncThunk<
       };
     } catch (error: unknown) {
       const axiosError = error as AxiosError<{ message: string; error?: { message: string } }>;
-      console.log("Blog API Error:", axiosError.response?.data);
       const message =
         axiosError.response?.data?.message ||
         axiosError.response?.data?.error?.message ||
@@ -252,20 +251,12 @@ export const updateBlog = createAsyncThunk<
       const token = localStorage.getItem("token");
       const formData = new FormData();
 
-      // Log the data being sent for debugging
-      console.log("Update Blog Data:", data);
-
       if (data.title) formData.append("title", data.title);
       if (data.slug) formData.append("slug", data.slug);
       if (data.shortDescription) formData.append("shortDescription", data.shortDescription);
       if (data.detailDescription) formData.append("detailDescription", data.detailDescription);
       if (data.status) formData.append("status", data.status);
       if (data.image) formData.append("image", data.image);
-
-      // Log the FormData contents
-      for (const [key, value] of formData.entries()) {
-        console.log(`FormData ${key}:`, value);
-      }
 
       // Try different endpoint patterns for blog update
       let response;
@@ -313,8 +304,6 @@ export const updateBlog = createAsyncThunk<
         }
       }
       
-      console.log("Update Blog Response:", response.data);
-      
       if (response?.data.error) {
         throw new Error(
           response?.data?.error?.message || "Something went wrong"
@@ -323,7 +312,6 @@ export const updateBlog = createAsyncThunk<
       return response.data;
     } catch (error: unknown) {
       const axiosError = error as AxiosError<{ message: string; error?: { message: string } }>;
-      console.log("Update Blog Error:", axiosError.response?.data);
       const message =
         axiosError.response?.data?.message ||
         axiosError.response?.data?.error?.message ||
@@ -380,6 +368,7 @@ export const deleteBlog = createAsyncThunk<
       return response.data;
     } catch (error: unknown) {
       const axiosError = error as AxiosError<{ message: string; error?: { message: string } }>;
+      
       const message =
         axiosError.response?.data?.message ||
         axiosError.response?.data?.error?.message ||
